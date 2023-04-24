@@ -1,0 +1,16 @@
+	(1)
+	GOOD
+VARIABLES	FA output
+	
+rta	0.208**
+	(0.0963)
+rta_age	0.0442***
+	(0.00778)
+	
+Observations	13,440
+R-squared	1.000
+Host-year FE	YES
+Partner-year FE	YES
+Country-pair FE	YES
+Standard errors in parentheses	
+*** p<0.01, ** p<0.05, * p<0.1	

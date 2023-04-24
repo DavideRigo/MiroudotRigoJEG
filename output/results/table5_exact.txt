@@ -1,0 +1,15 @@
+	(1)	(2)	(3)	(4)
+VARIABLES	Domestic MP	Horizontal MP	Vertical MP	Export-platform MP
+				
+PTA	0.0683	0.213	0.0457	0.0705
+	(0.0915)	(0.132)	(0.0938)	(0.0988)
+Invest prov	0.239**	0.151	0.328***	0.227**
+	(0.108)	(0.129)	(0.0997)	(0.111)
+				
+Observations	13,440	13,432	13,440	13,440
+R-squared	1.000	1.000	0.997	0.997
+Host-year FE	YES	YES	YES	YES
+Partner-year FE	YES	YES	YES	YES
+Country-pair FE	YES	YES	YES	YES
+Standard errors in parentheses				
+*** p<0.01, ** p<0.05, * p<0.1				

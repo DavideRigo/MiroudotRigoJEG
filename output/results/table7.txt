@@ -1,0 +1,18 @@
+		(1)	(2)	(3)	(4)
+VARIABLES	LABELS	MP	MP	MP	MP
+					
+rta	PTA	0.00352	-0.0134	0.0157	0.00617
+		(0.0478)	(0.0489)	(0.0527)	(0.0523)
+inv_prov	Invest prov	0.293***	-0.0588	-0.282***	-0.526***
+		(0.0454)	(0.0715)	(0.104)	(0.124)
+int_gvc	Invest prov x GVC		1.498***		0.955***
+			(0.245)		(0.256)
+int_proximity	Invest prov x Proximity			0.208***	0.214***
+				(0.0361)	(0.0355)
+					
+Observations		373,752	373,752	320,754	320,754
+Host-ind-year FE		YES	YES	YES	YES
+Partner-ind-year FE		YES	YES	YES	YES
+Host-partner-ind		YES	YES	YES	YES
+Robust standard errors in parentheses					
+*** p<0.01, ** p<0.05, * p<0.1					
