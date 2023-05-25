@@ -15,7 +15,7 @@ set scheme plotplainblind
 
 
 * Set main directory
-global home ..
+global home "C:\Users\rigod\Dropbox\GitHub\MiroudotRigo" 
 
 use "$home/output/data/mp_rta.dta", clear
 
@@ -44,43 +44,20 @@ label variable depth "Depth"
 label variable iprs_prov "IPR prov"
 label variable bit "BIT"
 
-* Gen year of treatment
-gen year2 = year if inv_prov == 1
-bys cou par (year): egen yeartreat = min(year2)
-drop year2
 
-* Gen var lag/lead for treatment
-gen time_to_treat = year - yeartreat
-replace time_to_treat = 0 if missing(yeartreat)
-
-* Stata does not allow factors with negative values
-sum time_to_treat
-bys cou par (year): gen shifted_ttt = time_to_treat - r(min)
-
-* Gen relative-time indicators for treated groups ignoring distant leads/lags
-// any effect outside these leads/lags is assumed to be 0!
-tab time_to_treat
-forvalues t = -4(2)4 {
-	if `t' < -1 {
-	    local tname = abs(`t')
-		gen g_m`tname' = time_to_treat == `t'
-	}
-	else if `t' >= 0 {
-	    gen g_`t' = time_to_treat == `t'
-	}
-}
-
-* Bin endpoints 
-// because it is a strong assumption to assume the effect to be 0 outside the effect window
-bys cou par (year): replace g_m4 = g_m4[_n+1] if g_m4[_n+1] == 1
-bys cou par (year): replace g_m4 = g_m4[_n+1] if g_m4[_n+1] == 1
-bys cou par (year): replace g_4 = g_4[_n-1] if g_4[_n-1] == 1
-
-
-* Gen fixed effects
+* gen lag/lead vars
 egen cou_par = group(cou par)
 egen cou_year = group(cou year)
 egen par_year = group(par year)
+tsset cou_par year
+forvalues y = 2(2)4 {
+	gen lag`y'_inv_prov = l`y'.inv_prov
+	replace lag`y'_inv_prov = 0 if lag`y'_inv_prov == .
+}
+forvalues y = 2(2)4 {
+	gen lead`y'_inv_prov = f`y'.inv_prov
+	replace lead`y'_inv_prov = 0 if lead`y'_inv_prov == .
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -89,7 +66,7 @@ egen par_year = group(par year)
 
 ***** GOODS
 
-ppmlhdfe fa_outgood rta g_m4 g_0 g_2 g_4, absorb(cou_par cou_year par_year) vce(cl cou_par)
+ppmlhdfe fa_outgood rta lag4_inv_prov lag2_inv_prov inv_prov lead2_inv_prov depth, absorb(cou_par cou_year par_year) vce(cl cou_par)
 
 * Plot cumulative effect and 95% confidence intervals
 cap drop beta se time up down
@@ -97,74 +74,72 @@ gen beta=.
 gen se=.
 gen time=.
 
-replace time=-4 in 1
-replace beta=_b[g_m4] in 1
-replace se=_se[g_m4] in 1
+lincom lead2_inv_prov
+replace time=-2 in 1
+replace beta=`r(estimate)' in 1
+replace se=`r(se)' in 1
 
-replace time=-2 in 2
-replace beta=0 in 2
-replace se=0 in 2
+lincom lead2_inv_prov + inv_prov
+replace time=0 in 2
+replace beta=`r(estimate)' in 2
+replace se=`r(se)' in 2
 
-replace time=0 in 3
-replace beta=_b[g_0] in 3
-replace se=_se[g_0] in 3
+lincom lead2_inv_prov + inv_prov + lag2_inv_prov
+replace time=2 in 3
+replace beta=`r(estimate)' in 3
+replace se=`r(se)' in 3
 
-replace time=2 in 4
-replace beta=_b[g_2] in 4
-replace se=_se[g_2] in 4
-
-replace time=4 in 5
-replace beta=_b[g_4] in 5
-replace se=_se[g_4] in 5
+lincom lead2_inv_prov + inv_prov + lag2_inv_prov + lag4_inv_prov
+replace time=4 in 4
+replace beta=`r(estimate)' in 4
+replace se=`r(se)' in 4
 
 gen up=beta+`z_value'*se
 gen down=beta-`z_value'*se
 
-twoway (scatter beta time, connect(line) lc(black)) ///
-	   (rcap up down time, lp(dash) lc(black)), ///
-	   title("Goods") leg(off) xlabel(-4(2)4) ///
-	   yline(0, lc(red)) xtitle("Year") ytitle("Cumulative coefficients")
+twoway (line beta time, lc(black)) (line up time, lp(dash) lc(black)) ///
+(line down time, lp(dash) lc(black)), title("Goods") leg(off) xlabel(-2(2)4) ///
+yline(0, lc(red)) xtitle("Year") ytitle("Cumulative coefficients")
 
 graph save "$home/output/results/dynamic_inv_prov_good.gph", replace
 
 
 ***** SERVICES
 		
-ppmlhdfe fa_outserv rta g_m4 g_0 g_2 g_4, absorb(cou_par cou_year par_year) vce(cl cou_par)
-
+ppmlhdfe fa_outserv rta lag4_inv_prov lag2_inv_prov inv_prov lead2_inv_prov depth, absorb(cou_par cou_year par_year) vce(cl cou_par)
+	
 * Plot cumulative effect and 95% confidence intervals
 cap drop beta se time up down
 gen beta=.
 gen se=.
 gen time=.
 
-replace time=-4 in 1
-replace beta=_b[g_m4] in 1
-replace se=_se[g_m4] in 1
+lincom lead2_inv_prov
+replace time=-2 in 1
+replace beta=`r(estimate)' in 1
+replace se=`r(se)' in 1
 
-replace time=-2 in 2
-replace beta=0 in 2
-replace se=0 in 2
+lincom lead2_inv_prov + inv_prov
+replace time=0 in 2
+replace beta=`r(estimate)' in 2
+replace se=`r(se)' in 2
 
-replace time=0 in 3
-replace beta=_b[g_0] in 3
-replace se=_se[g_0] in 3
+lincom lead2_inv_prov + inv_prov + lag2_inv_prov
+replace time=2 in 3
+replace beta=`r(estimate)' in 3
+replace se=`r(se)' in 3
 
-replace time=2 in 4
-replace beta=_b[g_2] in 4
-replace se=_se[g_2] in 4
-
-replace time=4 in 5
-replace beta=_b[g_4] in 5
-replace se=_se[g_4] in 5
+lincom lead2_inv_prov + inv_prov + lag2_inv_prov + lag4_inv_prov
+replace time=4 in 4
+replace beta=`r(estimate)' in 4
+replace se=`r(se)' in 4
 
 gen up=beta+`z_value'*se
 gen down=beta-`z_value'*se
 
-twoway (scatter beta time, connect(line) lc(black)) ///
-	   (rcap up down time, lp(dash) lc(black)), ///
-	   title("Services") leg(off) xlabel(-4(2)4) ///
-	   yline(0, lc(red)) xtitle("Year") ytitle("Cumulative coefficients")
+twoway (line beta time, lc(black)) (line up time, lp(dash) lc(black)) ///
+(line down time, lp(dash) lc(black)), title("Services") leg(off) xlabel(-2(2)4) ///
+yline(0, lc(red)) xtitle("Year") ytitle("Cumulative coefficients")
 
 graph save "$home/output/results/dynamic_inv_prov_serv.gph", replace
 	
