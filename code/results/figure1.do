@@ -49,14 +49,12 @@ label variable bit "BIT"
 egen cou_par = group(cou par)
 egen cou_year = group(cou year)
 egen par_year = group(par year)
-tsset cou_par year
+xtset cou_par year
 forvalues y = 2(2)4 {
 	gen lag`y'_inv_prov = l`y'.inv_prov
-	replace lag`y'_inv_prov = 0 if lag`y'_inv_prov == .
 }
 forvalues y = 2(2)4 {
 	gen lead`y'_inv_prov = f`y'.inv_prov
-	replace lead`y'_inv_prov = 0 if lead`y'_inv_prov == .
 }
 
 
